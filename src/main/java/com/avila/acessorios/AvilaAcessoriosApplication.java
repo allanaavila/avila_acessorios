@@ -7,6 +7,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 public class AvilaAcessoriosApplication {
 
 	public static void main(String[] args) {
+
 		SpringApplication.run(AvilaAcessoriosApplication.class, args);
 	}
 
