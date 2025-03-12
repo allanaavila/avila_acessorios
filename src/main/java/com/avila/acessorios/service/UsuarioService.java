@@ -43,7 +43,8 @@ public class UsuarioService {
                 dto.getDataNascimento()
         );
 
-        usuario.setTipoUsuario(TipoUsuario.USER);
+        usuario.setTipoUsuario(dto.getTipoUsuario());
+
         Usuario usuarioSalvo = usuarioRepository.save(usuario);
 
         return toDTO(usuarioSalvo);
