@@ -4,14 +4,14 @@ import com.avila.acessorios.model.Carrinho;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.time.LocalDateTime;
+import java.util.Date;
 
 @Getter
 @Setter
 public class CarrinhoDTO {
     private Long idCarrinho;
     private Long idUsuario;
-    private LocalDateTime dataCriacao;
+    private Date dataCriacao;
 
     public CarrinhoDTO() {}
 
