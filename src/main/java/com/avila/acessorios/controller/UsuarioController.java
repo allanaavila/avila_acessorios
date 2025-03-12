@@ -22,12 +22,6 @@ public class UsuarioController {
     private UsuarioService usuarioService;
 
 
-    @PostMapping("/cadastro")
-    public ResponseEntity<UsuarioDTO> cadastrar(@Valid @RequestBody UsuarioCadastroDTO dto) {
-        UsuarioDTO usuarioCriado = usuarioService.cadastrarUsuario(dto);
-        return ResponseEntity.status(HttpStatus.CREATED).body(usuarioCriado);
-    }
-
     @GetMapping
     public ResponseEntity<List<UsuarioDTO>> listarUsuarios() {
         return ResponseEntity.ok(usuarioService.listarUsuarios());
@@ -37,6 +31,12 @@ public class UsuarioController {
     public ResponseEntity<UsuarioDTO> buscarUsuarioPorId(@PathVariable Long id) {
         Optional<UsuarioDTO> usuario = usuarioService.buscarPorId(id);
         return usuario.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    @PostMapping("/cadastro")
+    public ResponseEntity<UsuarioDTO> cadastrar(@Valid @RequestBody UsuarioCadastroDTO dto) {
+        UsuarioDTO usuarioCriado = usuarioService.cadastrarUsuario(dto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(usuarioCriado);
     }
 
     @PostMapping("/login")
@@ -59,11 +59,4 @@ public class UsuarioController {
         }
         return ResponseEntity.notFound().build();
     }
-
-
-
-
-
-
-
 }
