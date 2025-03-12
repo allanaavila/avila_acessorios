@@ -38,10 +38,20 @@ public class EnderecoService {
         endereco.setCidade(dto.getCidade());
         endereco.setUf(dto.getUf());
 
-        endereco.setTipoEndereco(TipoEndereco.valueOf(dto.getTipoEndereco()));
+        if (dto.getTipoEndereco() == null) {
+            throw new RuntimeException("O campo 'tipoEndereco' é obrigatório.");
+        }
+
+        try {
+            endereco.setTipoEndereco(TipoEndereco.valueOf(dto.getTipoEndereco()));
+        } catch (IllegalArgumentException e) {
+            throw new RuntimeException("Tipo de endereço inválido: " + dto.getTipoEndereco());
+        }
+
+
+        endereco.setUsuario(usuario.get());
 
         Endereco enderecoSalvo = enderecoRepository.save(endereco);
-
         return new EnderecoDTO(enderecoSalvo);
     }
 
@@ -52,8 +62,10 @@ public class EnderecoService {
                 .collect(Collectors.toList());
     }
 
-    public Optional<EnderecoDTO> buscarEnderecoPorId(Long id) {
-        return enderecoRepository.findById(id).map(EnderecoDTO::new);
+    public EnderecoDTO buscarEnderecoPorId(Long id) {
+        Endereco endereco = enderecoRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Endereço não encontrado"));
+        return new EnderecoDTO(endereco);
     }
 
     public boolean deletarEndereco(Long id) {
@@ -78,13 +90,23 @@ public class EnderecoService {
             endereco.setCidade(dto.getCidade());
             endereco.setUf(dto.getUf());
 
-            endereco.setTipoEndereco(TipoEndereco.valueOf(dto.getTipoEndereco()));
+            if (dto.getTipoEndereco() == null) {
+                throw new RuntimeException("O campo 'tipoEndereco' é obrigatório.");
+            }
+
+            try {
+                endereco.setTipoEndereco(TipoEndereco.valueOf(dto.getTipoEndereco()));
+            } catch (IllegalArgumentException e) {
+                throw new RuntimeException("Tipo de endereço inválido: " + dto.getTipoEndereco());
+            }
+
 
             enderecoRepository.save(endereco);
             return Optional.of(new EnderecoDTO(endereco));
         }
         return Optional.empty();
     }
+
 
 
 

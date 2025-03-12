@@ -2,6 +2,8 @@ package com.avila.acessorios.dto;
 
 
 import com.avila.acessorios.model.Endereco;
+import com.avila.acessorios.model.TipoEndereco;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -16,9 +18,13 @@ public class EnderecoDTO {
     private String bairro;
     private String cidade;
     private String uf;
+
     private String tipoEndereco;
+
     private Long idUsuario;
 
+
+    public EnderecoDTO() {}
 
     public EnderecoDTO(Endereco endereco) {
         this.idEndereco = endereco.getIdEndereco();

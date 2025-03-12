@@ -18,10 +18,15 @@ public class EnderecoController {
     private EnderecoService enderecoService;
 
     @PostMapping
-    public ResponseEntity<EnderecoDTO> cadastrarEndereco(@RequestBody EnderecoDTO dto) {
-        EnderecoDTO enderecoCriado = enderecoService.cadastrarEndereco(dto);
-        return ResponseEntity.status(HttpStatus.CREATED).body(enderecoCriado);
+    public ResponseEntity<?> cadastrarEndereco(@RequestBody EnderecoDTO dto) {
+        try {
+            EnderecoDTO enderecoCriado = enderecoService.cadastrarEndereco(dto);
+            return ResponseEntity.status(HttpStatus.CREATED).body(enderecoCriado);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Erro ao cadastrar endereço: " + e.getMessage());
+        }
     }
+
 
     @GetMapping
     public ResponseEntity<List<EnderecoDTO>> listarEnderecos() {
@@ -30,8 +35,8 @@ public class EnderecoController {
 
     @GetMapping("/{id}")
     public ResponseEntity<EnderecoDTO> buscarEnderecoPorId(@PathVariable Long id) {
-        Optional<EnderecoDTO> endereco = enderecoService.buscarEnderecoPorId(id);
-        return endereco.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
+        EnderecoDTO enderecoDTO = enderecoService.buscarEnderecoPorId(id);
+        return ResponseEntity.ok(enderecoDTO);
     }
 
     @DeleteMapping("/{id}")
