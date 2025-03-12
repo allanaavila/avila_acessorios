@@ -1,6 +1,7 @@
 package com.avila.acessorios.dto;
 
 
+import com.avila.acessorios.model.TipoUsuario;
 import jakarta.validation.constraints.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -30,4 +31,7 @@ public class UsuarioCadastroDTO {
 
     @Past(message = "A data de nascimento deve estar no passado")
     private LocalDate dataNascimento;
+
+    @NotNull(message = "O tipo de usuário é obrigatório")
+    private TipoUsuario tipoUsuario;
 }

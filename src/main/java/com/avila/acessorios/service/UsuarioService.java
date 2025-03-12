@@ -75,8 +75,53 @@ public class UsuarioService {
         return toDTO(usuario);
     }
 
+    public Optional<UsuarioDTO> atualizarUsuario(Long id, UsuarioCadastroDTO dto) {
+        Optional<Usuario> usuarioExistente = usuarioRepository.findById(id);
+
+        if (usuarioExistente.isPresent()) {
+            Usuario usuario = usuarioExistente.get();
+
+            Optional<Usuario> usuarioComMesmoEmail = usuarioRepository.findByEmail(dto.getEmail());
+            if (usuarioComMesmoEmail.isPresent() && !usuarioComMesmoEmail.get().getIdUsuario().equals(id)) {
+                throw new RuntimeException("E-mail já cadastrado por outro usuário!");
+            }
+
+            Optional<Usuario> usuarioComMesmoCpf = usuarioRepository.findByCpf(dto.getCpf());
+            if (usuarioComMesmoCpf.isPresent() && !usuarioComMesmoCpf.get().getIdUsuario().equals(id)) {
+                throw new RuntimeException("CPF já cadastrado por outro usuário!");
+            }
+
+            usuario.setNome(dto.getNome());
+            usuario.setEmail(dto.getEmail());
+            usuario.setTelefone(dto.getTelefone());
+            usuario.setCpf(dto.getCpf());
+            usuario.setDataNascimento(dto.getDataNascimento());
+
+            if (dto.getTipoUsuario() != null) {
+                usuario.setTipoUsuario(dto.getTipoUsuario());
+            }
+
+            usuarioRepository.save(usuario);
+            return Optional.of(toDTO(usuario));
+        }
+
+        return Optional.empty();
+    }
+
+
+    public boolean deletarUsuario(Long id) {
+        Optional<Usuario> usuario = usuarioRepository.findById(id);
+        if (usuario.isPresent()) {
+            usuarioRepository.deleteById(id);
+            return true;
+        }
+        return false;
+    }
+
+
     private UsuarioDTO toDTO(Usuario usuario) {
         UsuarioDTO dto = new UsuarioDTO();
+        dto.setId(usuario.getIdUsuario());
         dto.setNome(usuario.getNome());
         dto.setEmail(usuario.getEmail());
         dto.setCpf(usuario.getCpf());
@@ -85,7 +130,5 @@ public class UsuarioService {
         dto.setTipoUsuario(usuario.getTipoUsuario().name());
         return dto;
     }
-
-
 
 }

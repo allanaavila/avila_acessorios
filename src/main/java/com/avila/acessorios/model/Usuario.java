@@ -53,6 +53,7 @@ public class Usuario {
         this.dataCadastro = LocalDateTime.now();
     }
 
+
     public Usuario(String nome, String email, String senha, String cpf, String telefone, LocalDate dataNascimento) {
         this.nome = nome;
         this.email = email;

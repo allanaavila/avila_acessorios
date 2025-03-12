@@ -45,4 +45,25 @@ public class UsuarioController {
         return ResponseEntity.ok(usuarioAutenticado);
     }
 
+    @PutMapping("/{id}")
+    public ResponseEntity<UsuarioDTO> atualizarUsuario(@PathVariable Long id, @RequestBody UsuarioCadastroDTO dto) {
+        Optional<UsuarioDTO> usuarioAtualizado = usuarioService.atualizarUsuario(id, dto);
+        return usuarioAtualizado.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deletarUsuario(@PathVariable Long id) {
+        boolean deletado = usuarioService.deletarUsuario(id);
+        if (deletado) {
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.notFound().build();
+    }
+
+
+
+
+
+
+
 }
