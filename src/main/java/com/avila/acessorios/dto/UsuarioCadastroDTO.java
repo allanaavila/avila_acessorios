@@ -3,13 +3,17 @@ package com.avila.acessorios.dto;
 
 import com.avila.acessorios.model.TipoUsuario;
 import jakarta.validation.constraints.*;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDate;
 
 @Getter
 @Setter
+@AllArgsConstructor
+@NoArgsConstructor
 public class UsuarioCadastroDTO {
 
     @NotBlank(message = "Nome é obrigatório")
