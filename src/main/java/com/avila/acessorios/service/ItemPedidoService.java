@@ -34,6 +34,7 @@ public class ItemPedidoService {
                 .orElseThrow(() -> new RuntimeException("Produto não encontrado"));
 
         BigDecimal precoUnitario = produto.getPreco();
+        BigDecimal valorTotalItem = precoUnitario.multiply(BigDecimal.valueOf(quantidade));
 
         ItemPedido itemPedido = new ItemPedido();
         itemPedido.setPedido(pedido);
@@ -42,8 +43,14 @@ public class ItemPedidoService {
         itemPedido.setPrecoUnitario(precoUnitario);
 
         ItemPedido salvo = itemPedidoRepository.save(itemPedido);
+
+        atualizarTotalPedido(pedido);
+
         return new ItemPedidoDTO(salvo);
     }
+
+
+
 
     public List<ItemPedidoDTO> listarItensPorPedido(Long idPedido) {
         List<ItemPedido> itens = itemPedidoRepository.buscarItensPorPedido(idPedido);
@@ -87,16 +94,36 @@ public class ItemPedidoService {
                 .orElseThrow(() -> new RuntimeException("Item não encontrado"));
 
         itemPedido.setQuantidade(novaQuantidade);
-        ItemPedido atualizado = itemPedidoRepository.save(itemPedido);
+        itemPedidoRepository.save(itemPedido);
 
-        return new ItemPedidoDTO(atualizado);
+        atualizarTotalPedido(itemPedido.getPedido());
+
+        return new ItemPedidoDTO(itemPedido);
     }
+
 
     public void deletarItemPedido(Long idItemPedido) {
         ItemPedido itemPedido = itemPedidoRepository.findById(idItemPedido)
                 .orElseThrow(() -> new RuntimeException("Item não encontrado"));
 
+        Pedido pedido = itemPedido.getPedido();
+
         itemPedidoRepository.delete(itemPedido);
+
+        atualizarTotalPedido(pedido);
     }
+
+
+    private void atualizarTotalPedido(Pedido pedido) {
+        BigDecimal totalPedido = itemPedidoRepository.findByPedidoIdPedido(pedido.getIdPedido())
+                .stream()
+                .map(item -> item.getPrecoUnitario().multiply(BigDecimal.valueOf(item.getQuantidade())))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        pedido.setTotalPedido(totalPedido);
+        pedidoRepository.save(pedido);
+    }
+
+
 
 }

@@ -21,10 +21,10 @@ public class PedidoController {
     @PostMapping("/{idUsuario}/{idEndereco}")
     public ResponseEntity<PedidoDTO> criarPedido(
             @PathVariable Long idUsuario,
-            @PathVariable Long idEndereco,
-            @RequestParam BigDecimal totalPedido) {
-        return ResponseEntity.ok(pedidoService.criarPedido(idUsuario, idEndereco, totalPedido));
+            @PathVariable Long idEndereco) {
+        return ResponseEntity.ok(pedidoService.criarPedido(idUsuario, idEndereco));
     }
+
 
 
     @GetMapping("/usuario/{idUsuario}")

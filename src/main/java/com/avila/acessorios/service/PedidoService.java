@@ -28,7 +28,7 @@ public class PedidoService {
     @Autowired
     private EnderecoRepository enderecoRepository;
 
-    public PedidoDTO criarPedido(Long idUsuario, Long idEnderecoEntrega, BigDecimal totalPedido) {
+    public PedidoDTO criarPedido(Long idUsuario, Long idEnderecoEntrega) {
         Optional<Usuario> usuario = usuarioRepository.findById(idUsuario);
         Optional<Endereco> endereco = enderecoRepository.findByIdWithUsuario(idEnderecoEntrega);
 
@@ -43,11 +43,13 @@ public class PedidoService {
         Pedido pedido = new Pedido();
         pedido.setUsuario(usuario.get());
         pedido.setEnderecoEntrega(endereco.get());
-        pedido.setTotalPedido(totalPedido);
+        pedido.setTotalPedido(BigDecimal.ZERO);
+        pedido.setStatusPedido(StatusPedido.PENDENTE);
 
         Pedido pedidoSalvo = pedidoRepository.save(pedido);
         return new PedidoDTO(pedidoSalvo);
     }
+
 
 
     public List<PedidoDTO> listarPedidosPorUsuario(Long idUsuario) {
