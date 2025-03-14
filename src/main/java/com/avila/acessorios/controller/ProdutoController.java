@@ -24,7 +24,6 @@ public class ProdutoController {
         return produtoService.listarTodos();
     }
 
-    // Busca um produto por ID
     @GetMapping("/{id}")
     public ResponseEntity<Produto> buscarPorId(@PathVariable Long id) {
         Optional<Produto> produto = produtoService.buscarPorId(id);
@@ -37,7 +36,6 @@ public class ProdutoController {
         return ResponseEntity.status(HttpStatus.CREATED).body(novoProduto);
     }
 
-    // Atualiza um produto pelo ID
     @PutMapping("/{id}")
     public ResponseEntity<Produto> atualizarProduto(@PathVariable Long id, @RequestBody Produto produto) {
         Optional<Produto> produtoExistente = produtoService.buscarPorId(id);
@@ -50,7 +48,6 @@ public class ProdutoController {
         }
     }
 
-    // Deleta um produto pelo ID
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deletar(@PathVariable Long id) {
         produtoService.deletar(id);
