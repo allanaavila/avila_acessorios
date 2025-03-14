@@ -30,10 +30,14 @@ public class PedidoService {
 
     public PedidoDTO criarPedido(Long idUsuario, Long idEnderecoEntrega, BigDecimal totalPedido) {
         Optional<Usuario> usuario = usuarioRepository.findById(idUsuario);
-        Optional<Endereco> endereco = enderecoRepository.findById(idEnderecoEntrega);
+        Optional<Endereco> endereco = enderecoRepository.findByIdWithUsuario(idEnderecoEntrega);
 
         if (usuario.isEmpty() || endereco.isEmpty()) {
             throw new RuntimeException("Usuário ou endereço não encontrado!");
+        }
+
+        if (!endereco.get().getUsuario().getIdUsuario().equals(idUsuario)) {
+            throw new RuntimeException("O endereço informado não pertence ao usuário!");
         }
 
         Pedido pedido = new Pedido();
