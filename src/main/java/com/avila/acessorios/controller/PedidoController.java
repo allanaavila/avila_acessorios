@@ -2,13 +2,13 @@ package com.avila.acessorios.controller;
 
 
 import com.avila.acessorios.dto.PedidoDTO;
+import com.avila.acessorios.dto.PedidoDetalhadoDTO;
 import com.avila.acessorios.model.StatusPedido;
 import com.avila.acessorios.service.PedidoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.math.BigDecimal;
 import java.util.List;
 
 @RestController
@@ -21,15 +21,19 @@ public class PedidoController {
     @PostMapping("/{idUsuario}/{idEndereco}")
     public ResponseEntity<PedidoDTO> criarPedido(
             @PathVariable Long idUsuario,
-            @PathVariable Long idEndereco,
-            @RequestParam BigDecimal totalPedido) {
-        return ResponseEntity.ok(pedidoService.criarPedido(idUsuario, idEndereco, totalPedido));
+            @PathVariable Long idEndereco) {
+        return ResponseEntity.ok(pedidoService.criarPedido(idUsuario, idEndereco));
     }
 
 
     @GetMapping("/usuario/{idUsuario}")
     public ResponseEntity<List<PedidoDTO>> listarPedidosPorUsuario(@PathVariable Long idUsuario) {
         return ResponseEntity.ok(pedidoService.listarPedidosPorUsuario(idUsuario));
+    }
+
+    @GetMapping("/{idPedido}/detalhes")
+    public ResponseEntity<PedidoDetalhadoDTO> buscarDetalhesPedido(@PathVariable Long idPedido) {
+        return ResponseEntity.ok(pedidoService.buscarDetalhesPedido(idPedido));
     }
 
     @PutMapping("/{idPedido}/status")

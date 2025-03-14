@@ -4,11 +4,14 @@ package com.avila.acessorios.dto;
 import com.avila.acessorios.model.Endereco;
 import com.avila.acessorios.model.TipoEndereco;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Getter
 @Setter
+@AllArgsConstructor
 public class EnderecoDTO {
     private Long idEndereco;
     private String cep;

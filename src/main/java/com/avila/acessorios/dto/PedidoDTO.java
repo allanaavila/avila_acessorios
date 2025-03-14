@@ -2,12 +2,16 @@ package com.avila.acessorios.dto;
 
 import com.avila.acessorios.model.Pedido;
 import com.avila.acessorios.model.StatusPedido;
-import lombok.Data;
+import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Data
+@Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
 public class PedidoDTO {
 
     private Long idPedido;

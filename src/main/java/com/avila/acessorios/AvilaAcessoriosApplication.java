@@ -10,5 +10,4 @@ public class AvilaAcessoriosApplication {
 
 		SpringApplication.run(AvilaAcessoriosApplication.class, args);
 	}
-
 }

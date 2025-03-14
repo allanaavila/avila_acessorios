@@ -2,13 +2,16 @@ package com.avila.acessorios.dto;
 
 import com.avila.acessorios.model.TipoUsuario;
 import com.avila.acessorios.model.Usuario;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDate;
 
 @Getter
 @Setter
+@AllArgsConstructor
 public class UsuarioDTO {
     private Long id;
     private String nome;
