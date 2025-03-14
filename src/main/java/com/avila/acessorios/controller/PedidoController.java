@@ -2,6 +2,7 @@ package com.avila.acessorios.controller;
 
 
 import com.avila.acessorios.dto.PedidoDTO;
+import com.avila.acessorios.dto.PedidoDetalhadoDTO;
 import com.avila.acessorios.model.StatusPedido;
 import com.avila.acessorios.service.PedidoService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,10 +26,14 @@ public class PedidoController {
     }
 
 
-
     @GetMapping("/usuario/{idUsuario}")
     public ResponseEntity<List<PedidoDTO>> listarPedidosPorUsuario(@PathVariable Long idUsuario) {
         return ResponseEntity.ok(pedidoService.listarPedidosPorUsuario(idUsuario));
+    }
+
+    @GetMapping("/{idPedido}/detalhes")
+    public ResponseEntity<PedidoDetalhadoDTO> buscarDetalhesPedido(@PathVariable Long idPedido) {
+        return ResponseEntity.ok(pedidoService.buscarDetalhesPedido(idPedido));
     }
 
     @PutMapping("/{idPedido}/status")

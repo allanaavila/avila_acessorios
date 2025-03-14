@@ -1,13 +1,9 @@
 package com.avila.acessorios.service;
 
 import com.avila.acessorios.dto.PedidoDTO;
-import com.avila.acessorios.model.Endereco;
-import com.avila.acessorios.model.Pedido;
-import com.avila.acessorios.model.StatusPedido;
-import com.avila.acessorios.model.Usuario;
-import com.avila.acessorios.repository.EnderecoRepository;
-import com.avila.acessorios.repository.PedidoRepository;
-import com.avila.acessorios.repository.UsuarioRepository;
+import com.avila.acessorios.dto.PedidoDetalhadoDTO;
+import com.avila.acessorios.model.*;
+import com.avila.acessorios.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -27,6 +23,12 @@ public class PedidoService {
 
     @Autowired
     private EnderecoRepository enderecoRepository;
+
+    @Autowired
+    private ItemPedidoRepository pedidoItemRepository;
+
+    @Autowired
+    private PagamentoRepository pagamentoRepository;
 
     public PedidoDTO criarPedido(Long idUsuario, Long idEnderecoEntrega) {
         Optional<Usuario> usuario = usuarioRepository.findById(idUsuario);
@@ -80,4 +82,28 @@ public class PedidoService {
         }
         return false;
     }
+
+
+    public PedidoDetalhadoDTO buscarDetalhesPedido(Long idPedido) {
+        Pedido pedido = pedidoRepository.findById(idPedido)
+                .orElseThrow(() -> new RuntimeException("Pedido não encontrado!"));
+
+        Pagamento pagamento = pagamentoRepository.findByPedidoIdPedido(idPedido);
+
+        List<String> produtos = pedidoItemRepository.findByPedidoIdPedido(idPedido).stream()
+                .map(item -> item.getProduto().getNome())
+                .collect(Collectors.toList());
+
+        PedidoDetalhadoDTO dto = new PedidoDetalhadoDTO();
+        dto.setIdPedido(pedido.getIdPedido());
+        dto.setNomeUsuario(pedido.getUsuario().getNome());
+        dto.setCpfUsuario(pedido.getUsuario().getCpf());
+        dto.setProdutos(produtos);
+        dto.setTotalPedido(pedido.getTotalPedido());
+        dto.setStatusPedido(pedido.getStatusPedido());
+        dto.setStatusPagamento(pagamento != null ? pagamento.getStatusPagamento() : null);
+
+        return dto;
+    }
+
 }
