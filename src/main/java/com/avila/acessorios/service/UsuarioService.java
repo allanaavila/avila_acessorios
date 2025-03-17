@@ -65,10 +65,6 @@ public class UsuarioService {
         Usuario usuario = usuarioRepository.findByEmail(loginDTO.getEmail())
                 .orElseThrow(() -> new RuntimeException("Usuário não encontrado!"));
 
-        System.out.println("Senha digitada: " + loginDTO.getSenha());
-        System.out.println("Senha no banco: " + usuario.getSenha());
-        System.out.println("Comparação: " + passwordEncoder.matches(loginDTO.getSenha(), usuario.getSenha()));
-
         if (!passwordEncoder.matches(loginDTO.getSenha(), usuario.getSenha())) {
             throw new RuntimeException("Senha incorreta!");
         }
