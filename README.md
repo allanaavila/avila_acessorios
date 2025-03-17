@@ -56,10 +56,12 @@ Banco de dados relacional **PostgreSQL** modelado para suportar todas as entidad
 - Itens do Pedido
 - Avaliação
 
+---
 
 📄 **Modelo do banco disponível:**  
 [Notion - Estrutura do Banco de Dados](https://impartial-mulberry-4be.notion.site/Projeto-vila-Acess-rios-1a60c8057cd78098b1fbc7f5b821aa26?pvs=74)
 
+---
 
 ## 🔑 Autenticação
 
