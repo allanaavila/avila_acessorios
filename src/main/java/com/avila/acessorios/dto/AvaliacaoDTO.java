@@ -1,17 +1,16 @@
 package com.avila.acessorios.dto;
 
 
+
 import com.avila.acessorios.model.Avaliacao;
-import lombok.Data;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
 @Data
 @Getter
 @Setter
+@AllArgsConstructor
 @NoArgsConstructor
 public class AvaliacaoDTO {
 

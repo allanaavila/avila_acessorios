@@ -1,11 +1,13 @@
 package com.avila.acessorios.model;
 
+import com.avila.acessorios.dto.PagamentoDTO;
 import com.avila.acessorios.model.Pagamentos.MetodoPagamento;
 import com.avila.acessorios.model.Pagamentos.StatusPagamento;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
@@ -36,13 +38,15 @@ public class Pagamento {
     @Column(unique = true, length = 255)
     private String transacaoID;
 
+    @Column(nullable = false, precision = 10, scale = 2)
+    private BigDecimal valorTotal;
+
+
     public void setStatusPagamento(StatusPagamento status) {
         this.statusPagamento = status;
         if (status == StatusPagamento.APROVADO) {
             this.dataPagamento = LocalDateTime.now();
         }
     }
-
-
 }
 

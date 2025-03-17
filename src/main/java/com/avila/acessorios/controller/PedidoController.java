@@ -27,8 +27,11 @@ public class PedidoController {
 
 
     @GetMapping("/usuario/{idUsuario}")
-    public ResponseEntity<List<PedidoDTO>> listarPedidosPorUsuario(@PathVariable Long idUsuario) {
-        return ResponseEntity.ok(pedidoService.listarPedidosPorUsuario(idUsuario));
+    public ResponseEntity<List<PedidoDTO>> listarPedidosPorUsuario(
+            @PathVariable Long idUsuario,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        return ResponseEntity.ok(pedidoService.listarPedidosPorUsuario(idUsuario, page, size));
     }
 
     @GetMapping("/{idPedido}/detalhes")

@@ -3,13 +3,16 @@ package com.avila.acessorios.controller;
 import com.avila.acessorios.dto.PagamentoDTO;
 import com.avila.acessorios.model.Pagamento;
 import com.avila.acessorios.model.Pagamentos.StatusPagamento;
+import com.avila.acessorios.service.GatewayPagamentoService;
 import com.avila.acessorios.service.PagamentoService;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/pagamentos")
@@ -19,51 +22,61 @@ public class PagamentoController {
     @Autowired
     private PagamentoService pagamentoService;
 
+    @Autowired
+    private GatewayPagamentoService gatewayPagamentoService;
+
     @PostMapping
-    public ResponseEntity<?> criarPagamento(@RequestBody PagamentoDTO pagamentoDTO) {
-        try {
-            return ResponseEntity.ok(pagamentoService.criarPagamento(pagamentoDTO));
-        } catch (IllegalStateException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        } catch (EntityNotFoundException e) {
-            return ResponseEntity.notFound().build();
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError().body("Erro ao processar o pagamento.");
-        }
+    public ResponseEntity<PagamentoDTO> criarPagamento(@Valid @RequestBody PagamentoDTO pagamentoDTO) {
+        PagamentoDTO pagamento = pagamentoService.criarPagamento(pagamentoDTO);
+        return ResponseEntity.ok(pagamento);
+    }
+
+    @PostMapping("/processar")
+    public ResponseEntity<Map<String, String>> processarPagamento(@RequestBody PagamentoDTO pagamentoDTO) {
+        Map<String, String> resposta = new HashMap<>();
+        resposta.put("transacao_id", "fake-transacao-" + UUID.randomUUID());
+        resposta.put("status", "CONFIRMADO");
+        return ResponseEntity.ok(resposta);
+    }
+
+
+    @PostMapping("/webhook")
+    public ResponseEntity<Void> receberWebhook(@RequestBody Map<String, Object> payload) {
+        String transacaoID = (String) payload.get("transacao_id");
+        String status = (String) payload.get("status");
+
+        pagamentoService.processarWebhook(transacaoID, status);
+        return ResponseEntity.ok().build();
     }
 
     @GetMapping("/pedido/{idPedido}")
-    public ResponseEntity<?> buscarPagamentoPorPedido(@PathVariable Long idPedido) {
-        try {
-            return ResponseEntity.ok(pagamentoService.buscarPagamentoPorPedido(idPedido));
-        } catch (EntityNotFoundException e) {
-            return ResponseEntity.notFound().build();
-        }
+    public ResponseEntity<PagamentoDTO> buscarPagamentoPorPedido(@PathVariable Long idPedido) {
+        Optional<Pagamento> pagamento = pagamentoService.buscarPagamentoPorPedido(idPedido);
+        return pagamento.map(p -> ResponseEntity.ok(new PagamentoDTO(p)))
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
 
     @PutMapping("/{idPagamento}/status")
-    public ResponseEntity<?> atualizarStatusPagamento(
+    public ResponseEntity<PagamentoDTO> atualizarStatusPagamento(
             @PathVariable Long idPagamento,
             @RequestParam StatusPagamento status) {
-        try {
-            return ResponseEntity.ok(pagamentoService.atualizarStatusPagamento(idPagamento, status));
-        } catch (EntityNotFoundException e) {
-            return ResponseEntity.notFound().build();
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError().body("Erro ao atualizar status do pagamento.");
-        }
+        Pagamento pagamento = pagamentoService.atualizarStatusPagamento(idPagamento, status);
+        return ResponseEntity.ok(new PagamentoDTO(pagamento));
     }
 
     @GetMapping
-    public ResponseEntity<List<Pagamento>> listarTodosPagamentos() {
-        return ResponseEntity.ok(pagamentoService.listarTodosPagamentos());
+    public ResponseEntity<List<PagamentoDTO>> listarTodosPagamentos() {
+        List<Pagamento> pagamentos = pagamentoService.listarTodosPagamentos();
+        List<PagamentoDTO> pagamentosDTO = pagamentos.stream()
+                .map(PagamentoDTO::new)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(pagamentosDTO);
     }
-
 
     @PutMapping("/{idPagamento}/cancelar")
-    public ResponseEntity<Pagamento> cancelarPagamento(@PathVariable Long idPagamento) {
-        return ResponseEntity.ok(pagamentoService.cancelarPagamento(idPagamento));
+    public ResponseEntity<PagamentoDTO> cancelarPagamento(@PathVariable Long idPagamento) {
+        Pagamento pagamento = pagamentoService.cancelarPagamento(idPagamento);
+        return ResponseEntity.ok(new PagamentoDTO(pagamento));
     }
-
 }
