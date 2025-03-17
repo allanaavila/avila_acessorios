@@ -54,7 +54,7 @@ public class PedidoService {
 
 
 
-    public List<PedidoDTO> listarPedidosPorUsuario(Long idUsuario) {
+    public List<PedidoDTO> listarPedidosPorUsuario(Long idUsuario, int page, int size) {
         return pedidoRepository.findByUsuarioIdUsuario(idUsuario)
                 .stream()
                 .map(PedidoDTO::new)
@@ -88,7 +88,7 @@ public class PedidoService {
         Pedido pedido = pedidoRepository.findById(idPedido)
                 .orElseThrow(() -> new RuntimeException("Pedido não encontrado!"));
 
-        Pagamento pagamento = pagamentoRepository.findByPedidoIdPedido(idPedido);
+        Optional<Pagamento> pagamento = pagamentoRepository.findByPedidoIdPedido(idPedido);
 
         List<String> produtos = pedidoItemRepository.findByPedidoIdPedido(idPedido).stream()
                 .map(item -> item.getProduto().getNome())
@@ -101,7 +101,7 @@ public class PedidoService {
         dto.setProdutos(produtos);
         dto.setTotalPedido(pedido.getTotalPedido());
         dto.setStatusPedido(pedido.getStatusPedido());
-        dto.setStatusPagamento(pagamento != null ? pagamento.getStatusPagamento() : null);
+        dto.setStatusPagamento(pagamento.isPresent() ? pagamento.get().getStatusPagamento() : null);
 
         return dto;
     }
