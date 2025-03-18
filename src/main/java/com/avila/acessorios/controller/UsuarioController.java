@@ -1,6 +1,7 @@
 package com.avila.acessorios.controller;
 
 import com.avila.acessorios.config.JwtUtil;
+import com.avila.acessorios.dto.TokenDTO;
 import com.avila.acessorios.dto.UsuarioCadastroDTO;
 import com.avila.acessorios.dto.UsuarioDTO;
 import com.avila.acessorios.dto.UsuarioLoginDTO;
@@ -28,10 +29,10 @@ public class UsuarioController {
     @PostMapping("/login")
     public ResponseEntity<?> autenticarUsuario(@RequestBody UsuarioLoginDTO loginDTO) {
         UsuarioDTO usuario = usuarioService.autenticarUsuario(loginDTO);
-        String token = jwtUtil.gerarToken(usuario.getEmail());
-
-        return ResponseEntity.ok().body("{ \"token\": \"" + token + "\" }");
+        String token = jwtUtil.gerarToken(usuario.getEmail(), usuario.getTipoUsuario());
+        return ResponseEntity.ok(new TokenDTO(token));
     }
+
 
     @PostMapping("/cadastro")
     public ResponseEntity<UsuarioDTO> cadastrar(@Valid @RequestBody UsuarioCadastroDTO dto) {

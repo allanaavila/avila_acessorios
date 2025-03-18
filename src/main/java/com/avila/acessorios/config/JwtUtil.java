@@ -16,14 +16,16 @@ public class JwtUtil {
 
     private static final String SECRET_KEY = "CHAVE_SUPER_SECRETA_COM_32BYTES_DE_SEGURANCA";
 
-    public String gerarToken(String email) {
+    public String gerarToken(String email, String tipoUsuario) {
         return Jwts.builder()
                 .setSubject(email)
+                .claim("role", tipoUsuario)
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60))
                 .signWith(Keys.hmacShaKeyFor(Base64.getEncoder().encodeToString(SECRET_KEY.getBytes(StandardCharsets.UTF_8)).getBytes()), SignatureAlgorithm.HS256)
                 .compact();
     }
+
 
     public String extrairEmail(String token) {
         return getClaims(token).getSubject();

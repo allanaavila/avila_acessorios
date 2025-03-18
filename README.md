@@ -67,9 +67,6 @@ Banco de dados relacional **PostgreSQL** modelado para suportar todas as entidad
 
 O projeto utiliza **JWT (JSON Web Tokens)** para autenticação e autorização. Apenas administradores têm acesso a endpoints de gerenciamento de produtos e usuários.
 
----
-
-
 
 ---
 
@@ -93,6 +90,15 @@ O projeto utiliza **JWT (JSON Web Tokens)** para autenticação e autorização.
 ```bash
     ./mvnw spring-boot:run
 ```
+
+---
+
+## 💳 Pagamentos
+* Processamento de pagamento integrado a um gateway simulado
+* Suporte para métodos: Cartão de Crédito, Cartão de Débito, PIX, Boleto e PayPal
+* Status do pagamento: PENDENTE, APROVADO, RECUSADO, ESTORNADO, REEMBOLSADO, CANCELADO
+* Webhook para atualização automática do status do pagamento
+* Associação automática do pagamento ao pedido, usuário e endereço
 
 ---
 

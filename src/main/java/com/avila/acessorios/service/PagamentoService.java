@@ -97,15 +97,22 @@ public class PagamentoService {
 
         StatusPagamento novoStatus;
         switch (statusGateway.toUpperCase()) {
-            case "PAID":
-            case "COMPLETED":
+            case "PAGO":
+            case "COMPLETO":
                 novoStatus = StatusPagamento.APROVADO;
                 break;
-            case "CANCELED":
+            case "CANCELADO":
                 novoStatus = StatusPagamento.CANCELADO;
                 break;
-            case "FAILED":
+            case "FALHOU":
+            case "RECUSADO":
                 novoStatus = StatusPagamento.RECUSADO;
+                break;
+            case "REEMBOLSADO":
+                novoStatus = StatusPagamento.REEMBOLSADO;
+                break;
+            case "ESTORNADO":
+                novoStatus = StatusPagamento.ESTORNADO;
                 break;
             default:
                 novoStatus = StatusPagamento.PENDENTE;
@@ -119,7 +126,10 @@ public class PagamentoService {
             pedido.setStatusPedido(StatusPedido.PAGO);
         } else if (novoStatus == StatusPagamento.RECUSADO || novoStatus == StatusPagamento.CANCELADO) {
             pedido.setStatusPedido(StatusPedido.CANCELADO);
+        } else if (novoStatus == StatusPagamento.ESTORNADO || novoStatus == StatusPagamento.REEMBOLSADO) {
+            pedido.setStatusPedido(StatusPedido.CANCELADO);
         }
         pedidoRepository.save(pedido);
     }
+
 }
