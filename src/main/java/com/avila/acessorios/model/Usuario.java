@@ -46,7 +46,7 @@ public class Usuario {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private TipoUsuario tipoUsuario = TipoUsuario.USER;
+    private TipoUsuario tipoUsuario = TipoUsuario.CLIENTE;
 
     @PrePersist
     protected void prePersist() {
