@@ -3,6 +3,7 @@ package com.avila.acessorios.service;
 import com.avila.acessorios.dto.PedidoDTO;
 import com.avila.acessorios.dto.PedidoDetalhadoDTO;
 import com.avila.acessorios.model.*;
+import com.avila.acessorios.model.Pagamentos.StatusPagamento;
 import com.avila.acessorios.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -61,19 +62,33 @@ public class PedidoService {
                 .collect(Collectors.toList());
     }
 
-
     public PedidoDTO atualizarStatusPedido(Long idPedido, StatusPedido novoStatus) {
         Optional<Pedido> pedidoOpt = pedidoRepository.findById(idPedido);
         if (pedidoOpt.isEmpty()) {
             throw new RuntimeException("Pedido não encontrado!");
         }
 
+        if (novoStatus.name().equalsIgnoreCase("PAGO") || novoStatus.name().equalsIgnoreCase("APROVADO")) {
+            throw new RuntimeException("O status do pedido não pode ser alterado para PAGO/APROVADO manualmente!");
+        }
+
         Pedido pedido = pedidoOpt.get();
+
+        if (novoStatus == StatusPedido.ENTREGUE) {
+            Optional<Pagamento> pagamentoOpt = pagamentoRepository.findByPedidoIdPedido(idPedido);
+            if (pagamentoOpt.isEmpty() || pagamentoOpt.get().getStatusPagamento() != StatusPagamento.APROVADO) {
+                throw new RuntimeException("Não é possível marcar como ENTREGUE antes do pagamento ser aprovado!");
+            }
+        }
+
         pedido.setStatusPedido(novoStatus);
         Pedido pedidoAtualizado = pedidoRepository.save(pedido);
 
         return new PedidoDTO(pedidoAtualizado);
     }
+
+
+
 
     public boolean deletarPedido(Long idPedido) {
         if (pedidoRepository.existsById(idPedido)) {

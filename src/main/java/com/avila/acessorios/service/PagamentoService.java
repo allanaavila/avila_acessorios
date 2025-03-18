@@ -37,12 +37,15 @@ public class PagamentoService {
         Pedido pedido = pedidoRepository.findById(pagamentoDTO.getIdPedido())
                 .orElseThrow(() -> new ResourceNotFoundException("Pedido não encontrado."));
 
-        if (pagamentoRepository.existsByPedidoIdPedido(pagamentoDTO.getIdPedido())) {
-            throw new IllegalOperationException("Já existe um pagamento para este pedido.");
-        }
-
-        if (pedido.getStatusPedido() == StatusPedido.PAGO || pedido.getStatusPedido() == StatusPedido.CANCELADO) {
-            throw new IllegalOperationException("O pedido já está pago ou cancelado.");
+        Optional<Pagamento> pagamentoExistente = pagamentoRepository.findByPedidoIdPedido(pagamentoDTO.getIdPedido());
+        if (pagamentoExistente.isPresent()) {
+            if (pagamentoExistente.get().getStatusPagamento() == StatusPagamento.APROVADO) {
+                throw new IllegalOperationException("O pedido já está pago.");
+            }
+            if (pedido.getStatusPedido() == StatusPedido.CANCELADO) {
+                throw new IllegalOperationException("O pedido foi cancelado.");
+            }
+            throw new IllegalOperationException("Já existe um pagamento pendente ou recusado para este pedido.");
         }
 
         Pagamento pagamento = new Pagamento();
@@ -122,13 +125,12 @@ public class PagamentoService {
         pagamentoRepository.save(pagamento);
 
         Pedido pedido = pagamento.getPedido();
-        if (novoStatus == StatusPagamento.APROVADO) {
-            pedido.setStatusPedido(StatusPedido.PAGO);
-        } else if (novoStatus == StatusPagamento.RECUSADO || novoStatus == StatusPagamento.CANCELADO) {
-            pedido.setStatusPedido(StatusPedido.CANCELADO);
-        } else if (novoStatus == StatusPagamento.ESTORNADO || novoStatus == StatusPagamento.REEMBOLSADO) {
+
+        if (novoStatus == StatusPagamento.RECUSADO || novoStatus == StatusPagamento.CANCELADO ||
+                novoStatus == StatusPagamento.ESTORNADO || novoStatus == StatusPagamento.REEMBOLSADO) {
             pedido.setStatusPedido(StatusPedido.CANCELADO);
         }
+
         pedidoRepository.save(pedido);
     }
 
