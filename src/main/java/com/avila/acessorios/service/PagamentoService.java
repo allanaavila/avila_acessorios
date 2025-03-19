@@ -11,9 +11,12 @@ import com.avila.acessorios.model.Pedido;
 import com.avila.acessorios.model.StatusPedido;
 import com.avila.acessorios.repository.PagamentoRepository;
 import com.avila.acessorios.repository.PedidoRepository;
-import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -31,6 +34,9 @@ public class PagamentoService {
 
     @Autowired
     private GatewayPagamentoService gatewayPagamentoService;
+
+    @Autowired
+    private AuditoriaService auditoriaService;
 
 
     public PagamentoDTO criarPagamento(PagamentoDTO pagamentoDTO) {
@@ -64,6 +70,20 @@ public class PagamentoService {
         pagamento.setTransacaoID(response.getTransacaoID());
 
         Pagamento pagamentoSalvo = pagamentoRepository.save(pagamento);
+
+        String emailUsuario = auditoriaService.obterUsuarioAutenticado();
+
+        auditoriaService.registrar(
+                "Pagamento",
+                "Criação",
+                "Pagamento criado para Pedido ID " + pedido.getIdPedido() +
+                        ", Método: " + pagamento.getMetodoPagamento() +
+                        ", Transação ID: " + pagamento.getTransacaoID() +
+                        ", Valor: " + pagamento.getValorTotal(),
+                emailUsuario
+        );
+
+
         return new PagamentoDTO(pagamentoSalvo);
     }
 
@@ -78,8 +98,21 @@ public class PagamentoService {
     public Pagamento atualizarStatusPagamento(Long idPagamento, StatusPagamento status) {
         Pagamento pagamento = pagamentoRepository.findById(idPagamento)
                 .orElseThrow(() -> new ResourceNotFoundException("Pagamento não encontrado."));
+
         pagamento.setStatusPagamento(status);
-        return pagamentoRepository.save(pagamento);
+        Pagamento atualizado = pagamentoRepository.save(pagamento);
+
+
+        String emailUsuario = auditoriaService.obterUsuarioAutenticado();
+
+        auditoriaService.registrar(
+                "Pagamento",
+                "Atualização de Status",
+                "Status do pagamento ID " + idPagamento + " atualizado para " + status,
+                emailUsuario
+        );
+
+        return atualizado;
     }
 
     public List<Pagamento> listarTodosPagamentos() {
@@ -89,8 +122,20 @@ public class PagamentoService {
     public Pagamento cancelarPagamento(Long idPagamento) {
         Pagamento pagamento = pagamentoRepository.findById(idPagamento)
                 .orElseThrow(() -> new ResourceNotFoundException("Pagamento não encontrado."));
+
         pagamento.setStatusPagamento(StatusPagamento.CANCELADO);
-        return pagamentoRepository.save(pagamento);
+        Pagamento cancelado = pagamentoRepository.save(pagamento);
+
+        String emailUsuario = auditoriaService.obterUsuarioAutenticado();
+
+        auditoriaService.registrar(
+                "Pagamento",
+                "Cancelamento",
+                "Pagamento ID " + idPagamento + " foi cancelado.",
+                emailUsuario
+        );
+
+        return cancelado;
     }
 
 
@@ -132,6 +177,15 @@ public class PagamentoService {
         }
 
         pedidoRepository.save(pedido);
+
+        auditoriaService.registrar(
+                "Pagamento",
+                "Webhook Processado",
+                "Webhook processado: Transação ID " + transacaoID +
+                        ", Novo status: " + novoStatus +
+                        ", Pedido ID: " + pedido.getIdPedido(),
+                "Gateway"
+        );
     }
 
 }

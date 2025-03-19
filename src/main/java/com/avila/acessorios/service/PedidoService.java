@@ -7,6 +7,8 @@ import com.avila.acessorios.model.Pagamentos.StatusPagamento;
 import com.avila.acessorios.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -31,6 +33,10 @@ public class PedidoService {
     @Autowired
     private PagamentoRepository pagamentoRepository;
 
+
+    @Autowired
+    private AuditoriaService auditoriaService;
+
     public PedidoDTO criarPedido(Long idUsuario, Long idEnderecoEntrega) {
         Optional<Usuario> usuario = usuarioRepository.findById(idUsuario);
         Optional<Endereco> endereco = enderecoRepository.findByIdWithUsuario(idEnderecoEntrega);
@@ -50,6 +56,18 @@ public class PedidoService {
         pedido.setStatusPedido(StatusPedido.PENDENTE);
 
         Pedido pedidoSalvo = pedidoRepository.save(pedido);
+
+        String emailUsuario = auditoriaService.obterUsuarioAutenticado();
+
+        auditoriaService.registrar(
+                "Pedido",
+                "Cadastro",
+                "Pedido criado: ID " + pedidoSalvo.getIdPedido() +
+                        ", Usuário: " + usuario.get().getEmail() +
+                        ", Endereço ID: " + idEnderecoEntrega,
+                emailUsuario
+        );
+
         return new PedidoDTO(pedidoSalvo);
     }
 
@@ -61,6 +79,7 @@ public class PedidoService {
                 .map(PedidoDTO::new)
                 .collect(Collectors.toList());
     }
+
 
     public PedidoDTO atualizarStatusPedido(Long idPedido, StatusPedido novoStatus) {
         Optional<Pedido> pedidoOpt = pedidoRepository.findById(idPedido);
@@ -84,15 +103,30 @@ public class PedidoService {
         pedido.setStatusPedido(novoStatus);
         Pedido pedidoAtualizado = pedidoRepository.save(pedido);
 
+        String emailUsuario = auditoriaService.obterUsuarioAutenticado();
+
+        auditoriaService.registrar(
+                "Pedido",
+                "Atualização",
+                "Status do pedido ID " + idPedido + " alterado para " + novoStatus,
+                emailUsuario
+        );
         return new PedidoDTO(pedidoAtualizado);
     }
-
-
 
 
     public boolean deletarPedido(Long idPedido) {
         if (pedidoRepository.existsById(idPedido)) {
             pedidoRepository.deleteById(idPedido);
+
+            String emailUsuario = auditoriaService.obterUsuarioAutenticado();
+
+            auditoriaService.registrar(
+                    "Pedido",
+                    "Exclusão",
+                    "Pedido excluído: ID " + idPedido,
+                    emailUsuario
+            );
             return true;
         }
         return false;
