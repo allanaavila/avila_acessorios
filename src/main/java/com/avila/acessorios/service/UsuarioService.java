@@ -25,6 +25,9 @@ public class UsuarioService {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    @Autowired
+    private AuditoriaService auditoriaService;
+
     public UsuarioDTO cadastrarUsuario(UsuarioCadastroDTO dto) {
         if (usuarioRepository.findByEmail(dto.getEmail()).isPresent()) {
             throw new EmailJaCadastradoException("E-mail já cadastrado!");
@@ -47,6 +50,8 @@ public class UsuarioService {
 
         Usuario usuarioSalvo = usuarioRepository.save(usuario);
 
+        auditoriaService.registrar("Usuário", "Cadastro", "Usuário cadastrado: " + usuarioSalvo.getEmail(), usuarioSalvo.getEmail());
+
         return toDTO(usuarioSalvo);
     }
 
@@ -57,9 +62,11 @@ public class UsuarioService {
                 .collect(Collectors.toList());
     }
 
+
     public Optional<UsuarioDTO> buscarPorId(Long id) {
         return usuarioRepository.findById(id).map(this::toDTO);
     }
+
 
     public UsuarioDTO autenticarUsuario(UsuarioLoginDTO loginDTO) {
         Usuario usuario = usuarioRepository.findByEmail(loginDTO.getEmail())
@@ -69,8 +76,11 @@ public class UsuarioService {
             throw new RuntimeException("Senha incorreta!");
         }
 
+        auditoriaService.registrar("Usuário", "Autenticação", "Usuário autenticado: " + usuario.getEmail(), usuario.getEmail());
+
         return toDTO(usuario);
     }
+
 
     public Optional<UsuarioDTO> atualizarUsuario(Long id, UsuarioCadastroDTO dto) {
         Optional<Usuario> usuarioExistente = usuarioRepository.findById(id);
@@ -98,8 +108,11 @@ public class UsuarioService {
                 usuario.setTipoUsuario(dto.getTipoUsuario());
             }
 
-            usuarioRepository.save(usuario);
-            return Optional.of(toDTO(usuario));
+            Usuario usuarioAtualizado = usuarioRepository.save(usuario);
+
+            auditoriaService.registrar("Usuário", "Autenticação", "Usuário autenticado: " + usuario.getEmail(), usuario.getEmail());
+
+            return Optional.of(toDTO(usuarioAtualizado));
         }
 
         return Optional.empty();
@@ -110,6 +123,9 @@ public class UsuarioService {
         Optional<Usuario> usuario = usuarioRepository.findById(id);
         if (usuario.isPresent()) {
             usuarioRepository.deleteById(id);
+
+            auditoriaService.registrar("Usuário", "Exclusão", "Usuário deletado: ID " + id, usuario.get().getEmail());
+
             return true;
         }
         return false;

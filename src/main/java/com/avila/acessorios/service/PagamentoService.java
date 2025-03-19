@@ -11,9 +11,12 @@ import com.avila.acessorios.model.Pedido;
 import com.avila.acessorios.model.StatusPedido;
 import com.avila.acessorios.repository.PagamentoRepository;
 import com.avila.acessorios.repository.PedidoRepository;
-import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -32,17 +35,23 @@ public class PagamentoService {
     @Autowired
     private GatewayPagamentoService gatewayPagamentoService;
 
+    @Autowired
+    private AuditoriaService auditoriaService;
+
 
     public PagamentoDTO criarPagamento(PagamentoDTO pagamentoDTO) {
         Pedido pedido = pedidoRepository.findById(pagamentoDTO.getIdPedido())
                 .orElseThrow(() -> new ResourceNotFoundException("Pedido não encontrado."));
 
-        if (pagamentoRepository.existsByPedidoIdPedido(pagamentoDTO.getIdPedido())) {
-            throw new IllegalOperationException("Já existe um pagamento para este pedido.");
-        }
-
-        if (pedido.getStatusPedido() == StatusPedido.PAGO || pedido.getStatusPedido() == StatusPedido.CANCELADO) {
-            throw new IllegalOperationException("O pedido já está pago ou cancelado.");
+        Optional<Pagamento> pagamentoExistente = pagamentoRepository.findByPedidoIdPedido(pagamentoDTO.getIdPedido());
+        if (pagamentoExistente.isPresent()) {
+            if (pagamentoExistente.get().getStatusPagamento() == StatusPagamento.APROVADO) {
+                throw new IllegalOperationException("O pedido já está pago.");
+            }
+            if (pedido.getStatusPedido() == StatusPedido.CANCELADO) {
+                throw new IllegalOperationException("O pedido foi cancelado.");
+            }
+            throw new IllegalOperationException("Já existe um pagamento pendente ou recusado para este pedido.");
         }
 
         Pagamento pagamento = new Pagamento();
@@ -61,6 +70,20 @@ public class PagamentoService {
         pagamento.setTransacaoID(response.getTransacaoID());
 
         Pagamento pagamentoSalvo = pagamentoRepository.save(pagamento);
+
+        String emailUsuario = auditoriaService.obterUsuarioAutenticado();
+
+        auditoriaService.registrar(
+                "Pagamento",
+                "Criação",
+                "Pagamento criado para Pedido ID " + pedido.getIdPedido() +
+                        ", Método: " + pagamento.getMetodoPagamento() +
+                        ", Transação ID: " + pagamento.getTransacaoID() +
+                        ", Valor: " + pagamento.getValorTotal(),
+                emailUsuario
+        );
+
+
         return new PagamentoDTO(pagamentoSalvo);
     }
 
@@ -75,8 +98,21 @@ public class PagamentoService {
     public Pagamento atualizarStatusPagamento(Long idPagamento, StatusPagamento status) {
         Pagamento pagamento = pagamentoRepository.findById(idPagamento)
                 .orElseThrow(() -> new ResourceNotFoundException("Pagamento não encontrado."));
+
         pagamento.setStatusPagamento(status);
-        return pagamentoRepository.save(pagamento);
+        Pagamento atualizado = pagamentoRepository.save(pagamento);
+
+
+        String emailUsuario = auditoriaService.obterUsuarioAutenticado();
+
+        auditoriaService.registrar(
+                "Pagamento",
+                "Atualização de Status",
+                "Status do pagamento ID " + idPagamento + " atualizado para " + status,
+                emailUsuario
+        );
+
+        return atualizado;
     }
 
     public List<Pagamento> listarTodosPagamentos() {
@@ -86,8 +122,20 @@ public class PagamentoService {
     public Pagamento cancelarPagamento(Long idPagamento) {
         Pagamento pagamento = pagamentoRepository.findById(idPagamento)
                 .orElseThrow(() -> new ResourceNotFoundException("Pagamento não encontrado."));
+
         pagamento.setStatusPagamento(StatusPagamento.CANCELADO);
-        return pagamentoRepository.save(pagamento);
+        Pagamento cancelado = pagamentoRepository.save(pagamento);
+
+        String emailUsuario = auditoriaService.obterUsuarioAutenticado();
+
+        auditoriaService.registrar(
+                "Pagamento",
+                "Cancelamento",
+                "Pagamento ID " + idPagamento + " foi cancelado.",
+                emailUsuario
+        );
+
+        return cancelado;
     }
 
 
@@ -122,14 +170,22 @@ public class PagamentoService {
         pagamentoRepository.save(pagamento);
 
         Pedido pedido = pagamento.getPedido();
-        if (novoStatus == StatusPagamento.APROVADO) {
-            pedido.setStatusPedido(StatusPedido.PAGO);
-        } else if (novoStatus == StatusPagamento.RECUSADO || novoStatus == StatusPagamento.CANCELADO) {
-            pedido.setStatusPedido(StatusPedido.CANCELADO);
-        } else if (novoStatus == StatusPagamento.ESTORNADO || novoStatus == StatusPagamento.REEMBOLSADO) {
+
+        if (novoStatus == StatusPagamento.RECUSADO || novoStatus == StatusPagamento.CANCELADO ||
+                novoStatus == StatusPagamento.ESTORNADO || novoStatus == StatusPagamento.REEMBOLSADO) {
             pedido.setStatusPedido(StatusPedido.CANCELADO);
         }
+
         pedidoRepository.save(pedido);
+
+        auditoriaService.registrar(
+                "Pagamento",
+                "Webhook Processado",
+                "Webhook processado: Transação ID " + transacaoID +
+                        ", Novo status: " + novoStatus +
+                        ", Pedido ID: " + pedido.getIdPedido(),
+                "Gateway"
+        );
     }
 
 }
