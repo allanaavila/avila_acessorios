@@ -40,6 +40,15 @@ public class UsuarioController {
         return ResponseEntity.status(HttpStatus.CREATED).body(usuarioCriado);
     }
 
+    @GetMapping("/me")
+    public ResponseEntity<UsuarioDTO> buscarUsuarioAutenticado(@RequestHeader("Authorization") String authorizationHeader) {
+        String token = authorizationHeader.replace("Bearer ", "");
+        String email = jwtUtil.extrairEmail(token);
+        Optional<UsuarioDTO> usuario = usuarioService.buscarPorEmail(email);
+
+        return usuario.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
     @GetMapping
     public ResponseEntity<List<UsuarioDTO>> listarUsuarios() {
         return ResponseEntity.ok(usuarioService.listarUsuarios());

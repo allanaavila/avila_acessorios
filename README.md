@@ -6,7 +6,7 @@ API RESTful para gerenciamento completo de um e-commerce de semi-joias, desenvol
 
 ## 🚀 Tecnologias Utilizadas
 
-- **Java 21**
+- **Java 22**
 - **Spring Boot**
 - **PostgreSQL**
 - **Spring Security (JWT)**

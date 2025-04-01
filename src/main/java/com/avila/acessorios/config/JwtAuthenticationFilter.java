@@ -10,18 +10,16 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
+
     private final JwtUtil jwtUtil;
     private final UsuarioRepository usuarioRepository;
 
@@ -30,12 +28,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         this.usuarioRepository = usuarioRepository;
     }
 
-
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         String authorizationHeader = request.getHeader("Authorization");
-
         if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
+            logger.info("Authorization header is missing or invalid.");
             filterChain.doFilter(request, response);
             return;
         }
@@ -44,6 +41,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         try {
             String email = jwtUtil.extrairEmail(token);
+
             Optional<Usuario> usuarioOpt = usuarioRepository.findByEmail(email);
 
             if (usuarioOpt.isPresent()) {
@@ -55,11 +53,20 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                         email, null, authorities
                 );
                 SecurityContextHolder.getContext().setAuthentication(authToken);
+                logger.info("Token de autenticação válido para o usuário: " + email);
+            } else {
+                logger.warn("Usuário não encontrado para o email: " + email);
             }
 
         } catch (JwtException e) {
+            logger.error("Erro ao validar o token: " + e.getMessage());
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.getWriter().write("Token inválido ou expirado.");
+            return;
+        } catch (Exception e) {
+            logger.error("Erro inesperado: " + e.getMessage());
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            response.getWriter().write("Erro interno no servidor.");
             return;
         }
 
