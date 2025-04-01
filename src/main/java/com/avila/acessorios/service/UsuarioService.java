@@ -62,11 +62,14 @@ public class UsuarioService {
                 .collect(Collectors.toList());
     }
 
+    public Optional<UsuarioDTO> buscarPorEmail(String email) {
+        return usuarioRepository.findByEmail(email).map(this::toDTO);
+    }
+
 
     public Optional<UsuarioDTO> buscarPorId(Long id) {
         return usuarioRepository.findById(id).map(this::toDTO);
     }
-
 
     public UsuarioDTO autenticarUsuario(UsuarioLoginDTO loginDTO) {
         Usuario usuario = usuarioRepository.findByEmail(loginDTO.getEmail())

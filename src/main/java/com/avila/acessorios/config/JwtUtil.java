@@ -5,8 +5,7 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.stereotype.Component;
-
-import java.nio.charset.StandardCharsets;
+import org.springframework.beans.factory.annotation.Value;
 import java.util.Base64;
 import java.util.Date;
 
@@ -14,16 +13,21 @@ import java.util.Date;
 public class JwtUtil {
 
 
-    private static final String SECRET_KEY = "CHAVE_SUPER_SECRETA_COM_32BYTES_DE_SEGURANCA";
+    @Value("${jwt.secret}")
+    private String secretKey;
 
     public String gerarToken(String email, String tipoUsuario) {
-        return Jwts.builder()
-                .setSubject(email)
-                .claim("role", tipoUsuario)
-                .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60))
-                .signWith(Keys.hmacShaKeyFor(Base64.getEncoder().encodeToString(SECRET_KEY.getBytes(StandardCharsets.UTF_8)).getBytes()), SignatureAlgorithm.HS256)
-                .compact();
+        try {
+            return Jwts.builder()
+                    .setSubject(email)
+                    .claim("role", tipoUsuario)
+                    .setIssuedAt(new Date())
+                    .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60))
+                    .signWith(Keys.hmacShaKeyFor(Base64.getDecoder().decode(secretKey)), SignatureAlgorithm.HS512)
+                    .compact();
+        } catch (Exception e) {
+            throw new RuntimeException("Erro ao gerar token: " + e.getMessage(), e);
+        }
     }
 
 
@@ -37,9 +41,10 @@ public class JwtUtil {
 
     private Claims getClaims(String token) {
         return Jwts.parserBuilder()
-                .setSigningKey(Keys.hmacShaKeyFor(Base64.getEncoder().encodeToString(SECRET_KEY.getBytes(StandardCharsets.UTF_8)).getBytes()))
+                .setSigningKey(Keys.hmacShaKeyFor(Base64.getDecoder().decode(secretKey)))
                 .build()
                 .parseClaimsJws(token)
                 .getBody();
     }
+
 }
